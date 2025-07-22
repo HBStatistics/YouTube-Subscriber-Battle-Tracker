@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>YouTube Subscriber Battle</title>
+
+<!-- Odometer -->
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/themes/odometer-theme-minimal.min.css"
+/>
+
+<!-- Font -->
+<link
+  href="https://fonts.googleapis.com/css2?family=Roboto:wght@700;900&display=swap"
+  rel="stylesheet"
+/>
+
+<style>
+  :root {
+    --bg: #121212;
+    --card: #1e1e1e;
+    --text: #e0e0e0;
+    --border: #333;
+    --leader: #ffd700;
+    --gap: #03dac6;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    font-family: "Roboto", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  .main-wrap {
+    display: flex;
+    justify-content: center;
+    max-width: 1200px;
+    padding: 20px;
+    margin: auto;
+  }
+  .battle-container {
+    display: flex;
+    gap: 20px;
+    flex: 1;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  .channel-card {
+    flex: 0 0 35%;
+    background: var(--card);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    border: 3px solid transparent;
+    transition: border-color 0.5s;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  }
+  .channel-card.leading {
+    border-color: var(--leader);
+  }
+  .channel-logo {
+    width: 115px;
+    height: 115px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 3px solid var(--border);
+    margin-bottom: 14px;
+  }
+  .channel-name {
+    font-size: 1.7em;
+    font-weight: 900;
+    min-height: 56px;
+  }
+  .channel-rank {
+    margin-right: 6px;
+    vertical-align: middle;
+    /* color and font-size removed to inherit from .channel-name */
+  }
+  .subs {
+    font-size: 3.3em;
+    font-weight: 900;
+  }
+
+  .gap-wrap {
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .gap-vs {
+    font-size: 3.8em;
+    font-weight: 900;
+  }
+  .gap-count {
+    font-size: 2.9em;
+    font-weight: 900;
+    margin-top: 6px;
+  }
+  .gap-label {
+    font-size: 1.1em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 6px;
+  }
+  .eta-section {
+    margin-top: 22px;
+    min-height: 88px;
+  }
+  .eta-timer {
+    display: none;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 5px;
+  }
+  .eta-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 30px;
+  }
+  .eta-item span {
+    font-weight: 700;
+  }
+  .eta-item small {
+    font-size: 0.45em;
+    opacity: 0.7;
+  }
+  .eta-text {
+    font-size: 1em;
+    font-weight: 700;
+    min-height: 26px;
+  }
+  .eta-label {
+    font-size: 0.85em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+  .disclaimer {
+    font-size: 0.55em;
+    opacity: 0.45;
+    margin-top: 8px;
+    letter-spacing: 0.4px;
+  }
+
+  @media (max-width: 1000px) {
+    .main-wrap {
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+  @media (max-width: 800px) {
+    .battle-container {
+      flex-direction: column;
+    }
+    .channel-card {
+      width: 80%;
+      max-width: 390px;
+    }
+    .gap-wrap {
+      order: 1;
+      margin: 18px 0;
+    }
+    #channel-a {
+      order: 0;
+    }
+    #channel-b {
+      order: 2;
+    }
+    .channel-name {
+      font-size: 1.45em;
+    }
+    .subs {
+      font-size: 3em;
+    }
+    .gap-vs {
+      font-size: 3em;
+    }
+    .gap-count {
+      font-size: 2.4em;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="main-wrap">
+    <div class="battle-container">
+      <!-- Channel A -->
+      <div id="channel-a" class="channel-card">
+        <img
+          id="logo-a"
+          class="channel-logo"
+          src="https://via.placeholder.com/115"
+          alt=""
+        />
+        <h2 class="channel-name">
+          <span id="rank-a" class="channel-rank">#0</span>
+          <span id="title-a">Loading…</span>
+        </h2>
+        <div id="subs-a" class="subs odometer">0</div>
+      </div>
+
+      <!-- Gap / ETA -->
+      <div class="gap-wrap">
+        <h3 class="gap-vs">VS</h3>
+        <div id="gap" class="gap-count odometer">0</div>
+        <p class="gap-label">Sub Difference</p>
+
+        <div class="eta-section">
+          <div id="eta-timer" class="eta-timer">
+            <div class="eta-item">
+              <span id="eta-d" class="odometer">00</span><small>DAYS</small>
+            </div>
+            <div class="eta-item">
+              <span id="eta-h" class="odometer">00</span><small>HRS</small>
+            </div>
+            <div class="eta-item">
+              <span id="eta-m" class="odometer">00</span><small>MIN</small>
+            </div>
+            <div class="eta-item">
+              <span id="eta-s" class="odometer">00</span><small>SEC</small>
+            </div>
+          </div>
+          <p id="eta-text" class="eta-text">Calculating…</p>
+          <p class="eta-label">Time to Overtake</p>
+          <p class="disclaimer">THE ESTIMATE MAY DIFFER FROM REALITY.</p>
+        </div>
+      </div>
+
+      <!-- Channel B -->
+      <div id="channel-b" class="channel-card">
+        <img
+          id="logo-b"
+          class="channel-logo"
+          src="https://via.placeholder.com/115"
+          alt=""
+        />
+        <h2 class="channel-name">
+          <span id="rank-b" class="channel-rank">#0</span>
+          <span id="title-b">Loading…</span>
+        </h2>
+        <div id="subs-b" class="subs odometer">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Odometer JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/odometer.min.js"></script>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const el = {
+      cardA: $("channel-a"),
+      logoA: $("logo-a"),
+      nameA: $("title-a"),
+      rankA: $("rank-a"),
+      subsA: $("subs-a"),
+      cardB: $("channel-b"),
+      logoB: $("logo-b"),
+      nameB: $("title-b"),
+      rankB: $("rank-b"),
+      subsB: $("subs-b"),
+      gap: $("gap"),
+      etaTimer: $("eta-timer"),
+      etaText: $("eta-text"),
+      etaD: $("eta-d"),
+      etaH: $("eta-h"),
+      etaM: $("eta-m"),
+      etaS: $("eta-s"),
+    };
+
+    const API_KEY = "AIzaSyBgELAGkvluwfu6CNKHNDTwq20_8lckcZU";
+    const CHANNEL_JSON_URL = "channels.json";
+    const UPDATE_MS = 2500,
+      HISTORY = 120,
+      WINDOW = 12;
+    const MAX_BATTLE_DURATION = 10 * 60 * 1000; // 10 minutes in ms
+
+    let BATTLES = [],
+      histA = [],
+      histB = [],
+      currentBattleIndex = 0,
+      isChanging = false,
+      battleStartTime = Date.now();
+
+    const odo = {};
+    let smoothedRateA = 0;
+    let smoothedRateB = 0;
+    const alpha = 0.1; // smoothing factor
+
+    const fetchYT = async (id) => {
+      try {
+        const r = await fetch(
+          `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${id}&key=${API_KEY}`
+        );
+        if (!r.ok) return null;
+        const j = await r.json();
+        if (!j.items?.length) return null;
+        const sn = j.items[0].snippet,
+          st = j.items[0].statistics;
+        return { name: sn.title, logo: sn.thumbnails.high.url, subs: +st.subscriberCount };
+      } catch (e) {
+        console.error("YouTube API Error", e);
+        return null;
+      }
+    };
+
+    const fetchMix = async (id) => {
+      try {
+        const r = await fetch(
+          `https://mixerno.space/api/youtube-channel-counter/user/${id}`
+        );
+        if (!r.ok) return null;
+        const j = await r.json();
+        return j?.counts?.[0]?.count ?? null;
+      } catch (e) {
+        console.error("Mixerno API Error", e);
+        return null;
+      }
+    };
+
+    const calculateRate = (h, win) => {
+      const w = h.slice(-win);
+      if (w.length < 2) return 0;
+      const timeDelta = (w[w.length - 1].time - w[0].time) / 1000;
+      if (timeDelta === 0) return 0;
+      return (w[w.length - 1].count - w[0].count) / timeDelta;
+    };
+
+    async function loadBattle(index) {
+      isChanging = true;
+      battleStartTime = Date.now(); // reset timer on new battle
+      const { idA, idB } = BATTLES[index];
+      el.nameA.textContent = "Loading…";
+      el.logoA.src = "https://via.placeholder.com/115";
+      el.nameB.textContent = "Loading…";
+      el.logoB.src = "https://via.placeholder.com/115";
+      odo.subsA.update(0);
+      odo.subsB.update(0);
+      odo.gap.update(0);
+      el.etaTimer.style.display = "none";
+      el.etaText.style.display = "block";
+      el.etaText.textContent = "Calculating…";
+      histA = [];
+      histB = [];
+      smoothedRateA = 0;
+      smoothedRateB = 0;
+
+      const [dA, dB] = await Promise.all([fetchYT(idA), fetchYT(idB)]);
+
+      if (dA) {
+        el.nameA.textContent = dA.name;
+        el.logoA.src = dA.logo;
+        el.rankA.textContent = "#531"; // 👈 Set Channel A Rank
+      } else el.nameA.textContent = "Error Loading";
+
+      if (dB) {
+        el.nameB.textContent = dB.name;
+        el.logoB.src = dB.logo;
+        el.rankB.textContent = "#532"; // 👈 Set Channel B Rank
+      } else el.nameB.textContent = "Error Loading";
+
+      isChanging = false;
+      await tick();
+    }
+
+    async function findAndLoadClosestBattle() {
+      isChanging = true;
+      el.nameA.textContent = "Finding…";
+      el.nameB.textContent = "Closest Battle";
+      el.logoA.src = el.logoB.src = "https://via.placeholder.com/115";
+      odo.subsA.update(0);
+      odo.subsB.update(0);
+      odo.gap.update(0);
+
+      let channelIds;
+      try {
+        const response = await fetch(CHANNEL_JSON_URL);
+        channelIds = await response.json();
+      } catch (e) {
+        el.nameA.textContent = "Error";
+        el.nameB.textContent = "Could not load channels.";
+        return;
+      }
+
+      const allSubCounts = await Promise.all(channelIds.map((id) => fetchMix(id)));
+      const ranked = channelIds
+        .map((id, i) => ({ id, subs: allSubCounts[i] }))
+        .filter((c) => c.subs !== null);
+      ranked.sort((a, b) => b.subs - a.subs);
+      ranked.forEach((c, i) => (c.rank = i + 1));
+
+      let closest = null,
+        minGap = Infinity;
+      for (let i = 0; i < ranked.length - 1; i++) {
+        const gap = Math.abs(ranked[i].subs - ranked[i + 1].subs);
+        if (gap < minGap) {
+          minGap = gap;
+          closest = { idA: ranked[i].id, idB: ranked[i + 1].id };
+        }
+      }
+
+      if (closest) {
+        BATTLES = [closest];
+        currentBattleIndex = 0;
+        await loadBattle(0);
+      }
+    }
+
+    async function tick() {
+      if (isChanging || BATTLES.length === 0) return;
+
+      // Rotate battle after max duration
+      if (Date.now() - battleStartTime > MAX_BATTLE_DURATION) {
+        await findAndLoadClosestBattle();
+        battleStartTime = Date.now();
+        return;
+      }
+
+      const { idA, idB } = BATTLES[currentBattleIndex];
+      const [cA, cB] = await Promise.all([fetchMix(idA), fetchMix(idB)]);
+      if (cA === null || cB === null) return;
+
+      odo.subsA.update(cA);
+      odo.subsB.update(cB);
+      odo.gap.update(Math.abs(cA - cB));
+      el.cardA.classList.toggle("leading", cA > cB);
+      el.cardB.classList.toggle("leading", cB > cA);
+
+      const now = Date.now();
+      histA.push({ time: now, count: cA });
+      histB.push({ time: now, count: cB });
+      if (histA.length > HISTORY) histA.shift();
+      if (histB.length > HISTORY) histB.shift();
+
+      const rA = calculateRate(histA, WINDOW);
+      const rB = calculateRate(histB, WINDOW);
+
+      // Smooth rates
+      smoothedRateA = alpha * rA + (1 - alpha) * smoothedRateA;
+      smoothedRateB = alpha * rB + (1 - alpha) * smoothedRateB;
+
+      const gap = cA - cB;
+      let sec = -1;
+
+      if (smoothedRateB > smoothedRateA) {
+        sec = gap / (smoothedRateB - smoothedRateA);
+
+        // Clamp ETA to max 7 days
+        const maxSec = 7 * 24 * 3600;
+        if (sec > maxSec) sec = maxSec;
+        if (sec < 0) sec = -1;
+      }
+
+      if (sec >= 0 && isFinite(sec)) {
+        el.etaTimer.style.display = "flex";
+        el.etaText.style.display = "none";
+        odo.d.update(Math.floor(sec / 86400));
+        odo.h.update(Math.floor(sec / 3600) % 24);
+        odo.m.update(Math.floor(sec / 60) % 60);
+        odo.s.update(Math.floor(sec) % 60);
+      } else {
+        el.etaTimer.style.display = "none";
+        el.etaText.style.display = "block";
+        el.etaText.textContent = cA === cB ? "TIED" : "Never";
+      }
+    }
+
+    async function init() {
+      const fmt = { format: "(,ddd)" },
+        tFmt = { format: "dd" };
+      odo.subsA = new Odometer({ el: el.subsA, value: 0, ...fmt });
+      odo.subsB = new Odometer({ el: el.subsB, value: 0, ...fmt });
+      odo.gap = new Odometer({ el: el.gap, value: 0, ...fmt });
+      odo.d = new Odometer({ el: el.etaD, value: 0, ...tFmt });
+      odo.h = new Odometer({ el: el.etaH, value: 0, ...tFmt });
+      odo.m = new Odometer({ el: el.etaM, value: 0, ...tFmt });
+      odo.s = new Odometer({ el: el.etaS, value: 0, ...tFmt });
+
+      await findAndLoadClosestBattle();
+      setInterval(tick, UPDATE_MS);
+    }
+    document.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>
